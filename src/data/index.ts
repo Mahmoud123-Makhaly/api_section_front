@@ -2,29 +2,29 @@ import { ILoginInput, IRegisterInput } from "../interfaces";
 
 export const REGISTER_FORM: IRegisterInput[] = [
   {
-    name: "username",
-    placeholder: "Username",
     type: "text",
+    name: "username",
+    placeholder: "userName",
     validation: {
-      required: true,
+      required: "userName is required",
       minLength: 5,
     },
   },
   {
-    name: "email",
-    placeholder: "Email",
     type: "email",
+    name: "email",
+    placeholder: "email address",
     validation: {
-      required: true,
-      pattern: /^[^@ ]+@[^@ ]+\.[^@ .]{2,}$/,
+      required: "email is required",
+      pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
     },
   },
   {
-    name: "password",
-    placeholder: "Password",
     type: "password",
+    name: "password",
+    placeholder: "password",
     validation: {
-      required: true,
+      required: "password is required",
       minLength: 6,
     },
   },
