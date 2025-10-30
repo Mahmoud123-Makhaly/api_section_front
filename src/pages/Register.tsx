@@ -3,6 +3,9 @@ import Button from "../components/ui/Button";
 import { useForm, SubmitHandler } from "react-hook-form";
 import InputErrorMessage from "../components/ui/InputErrorMessage";
 import { REGISTER_FORM } from "../data";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { registerValidationSchema } from "../validation";
+
 interface IFormInput {
   username: string;
   email: string;
@@ -14,11 +17,11 @@ const Register = () => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<IFormInput>();
+  } = useForm<IFormInput>({
+    resolver: yupResolver(registerValidationSchema),
+  });
   const onSubmit: SubmitHandler<IFormInput> = (data) =>
     console.log("data", data);
-
-  console.log("errors", errors);
 
   return (
     <div className="max-w-md mx-auto">
@@ -33,9 +36,7 @@ const Register = () => {
               placeholder={placeholder}
               {...register(name, validation)}
             />
-            {errors[name] && (
-              <InputErrorMessage msg={errors[name].message} />
-            )}
+            {errors[name] && <InputErrorMessage msg={errors[name].message} />}
           </div>
         ))}
         <Button fullWidth> Register</Button>
