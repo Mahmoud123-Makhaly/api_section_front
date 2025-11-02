@@ -15,8 +15,7 @@ import TodosPage from "../pages/Todos";
 const storageKey = "loggedInUser";
 const userDataString = localStorage.getItem(storageKey);
 const userData = userDataString ? JSON.parse(userDataString) : null;
-
-const router = createBrowserRouter(
+ const router = createBrowserRouter(
   createRoutesFromElements(
     <>
       {/* Root Layout */}

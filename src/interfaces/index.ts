@@ -31,17 +31,14 @@ export interface ILoginInput {
 
 export interface IErrorResponse {
   error: {
-    details?: {
-      errors: {
-        message: string;
-      }[];
-    };
-    message?: string;
+    details: unknown;
+    message: string;
+    name: string;
+    status: number;
   };
 }
 
 export interface ITodo {
   id: number;
   title: string;
-  description: string;
 }

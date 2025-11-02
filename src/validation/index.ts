@@ -15,15 +15,27 @@ export const registerValidationSchema = yup.object().shape({
     .required("Password is required")
     .min(6, "Password should be at least 6 charachters."),
 });
-export const loginSchema = yup
-  .object({
-    identifier: yup
-      .string()
-      .required("Email is required")
-      .matches(/^[^@ ]+@[^@ ]+\.[^@ .]{2,}$/, "Not a valid email address."),
-    password: yup
-      .string()
-      .required("Password is required")
-      .min(6, "Password should be at least 6 charachters."),
-  })
-  .required();
+// export const loginSchema = yup
+//   .object({
+//     identifier: yup
+//       .string()
+//       .required("Email is required")
+//       .matches(/^[^@ ]+@[^@ ]+\.[^@ .]{2,}$/, "Not a valid email address."),
+//     password: yup
+//       .string()
+//       .required("Password is required")
+//       .min(6, "Password should be at least 6 charachters."),
+//   })
+//   .required();
+export const loginSchema = yup.object().shape({
+  identifier: yup
+    .string()
+    .email()
+    .required("Email Address is required")
+    .matches(/^[^@ ]+@[^@ ]+\.[^@ .]{2,}$/, "Not a valid email address."),
+  password: yup
+    .string()
+    .min(5, "password should be at least 5 charachters")
+
+    .required(" Password is required"),
+});

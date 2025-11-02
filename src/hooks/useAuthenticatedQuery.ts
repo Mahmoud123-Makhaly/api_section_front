@@ -1,21 +1,24 @@
+// import { useQuery } from "@tanstack/react-query";
+// import axiosInstance from "../config/axios.config";
+// import { AxiosRequestConfig } from "axios";
+
 import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "../config/axios.config";
 import { AxiosRequestConfig } from "axios";
 
-interface IAuthenticatedQuery {
+interface IUseAuthenticatedQuery {
   queryKey: string[];
   url: string;
   config?: AxiosRequestConfig;
 }
-
-const useCustomQuery = ({ queryKey, url, config }: IAuthenticatedQuery) => {
+const useAuthenticatedQuery = ({
+  queryKey,
+  url,
+  config,
+}: IUseAuthenticatedQuery) => {
   return useQuery({
     queryKey,
-    queryFn: async () => {
-      const { data } = await axiosInstance.get(url, config);
-      return data;
-    },
+    queryFn: async () => await axiosInstance.get(url, config),
   });
 };
-
-export default useCustomQuery;
+export default useAuthenticatedQuery;
