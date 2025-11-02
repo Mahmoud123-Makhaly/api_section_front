@@ -1,7 +1,4 @@
-// import { useQuery } from "@tanstack/react-query";
-// import axiosInstance from "../config/axios.config";
-// import { AxiosRequestConfig } from "axios";
-
+ 
 import { useQuery } from "@tanstack/react-query";
 import axiosInstance from "../config/axios.config";
 import { AxiosRequestConfig } from "axios";

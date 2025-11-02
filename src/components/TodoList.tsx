@@ -2,13 +2,26 @@ import Button from "./ui/Button";
 
 import { ITodo } from "./../interfaces/index";
 import useAuthenticatedQuery from "../hooks/useAuthenticatedQuery";
+import Modal from "./ui/Modal";
+import { useState } from "react";
+import Input from "./ui/Input";
+import Textarea from "./ui/Textarea";
+import axiosInstance from "../config/axios.config";
+import { set } from "react-hook-form";
 
 const TodoList = () => {
+  const [isOpenEditModal, setIsOpenEditModal] = useState(false);
+  const [todoToEdit, setTodoToEdit] = useState<ITodo>({
+    id: 0,
+    title: "",
+    description: "",
+  });
+  const [isUpdating, setIsUpdating] = useState(false);
   const userData = localStorage.getItem("loggedInUser")
     ? JSON.parse(localStorage.getItem("loggedInUser") as string)
     : null;
   const { isLoading, data } = useAuthenticatedQuery({
-    queryKey: ["todos"],
+    queryKey: ["todos", String(todoToEdit.id)],
     url: "/todos",
     config: {
       headers: {
@@ -16,9 +29,54 @@ const TodoList = () => {
       },
     },
   });
-
+  const onOpenEditModal = (todo: ITodo) => {
+    setIsOpenEditModal((prev) => !prev);
+    setTodoToEdit(todo);
+  };
+  const closeEditModal = () => {
+    setIsOpenEditModal(false);
+    setTodoToEdit({
+      id: 0,
+      title: "",
+      description: "",
+    });
+  };
   if (isLoading) return <p>Loading...</p>;
-
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setTodoToEdit((prev) => ({ ...prev, [name]: value }));
+  };
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsUpdating(true);
+    try {
+      const res = await axiosInstance.put(
+        `/todos/${todoToEdit.documentId}`,
+        {
+          data: {
+            // <-- This 'data' wrapper is ONLY for Strapi v4
+            title: todoToEdit.title,
+            description: todoToEdit.description,
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${userData.jwt}`,
+          },
+        }
+      );
+      if (res.status === 200) {
+        closeEditModal();
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
   return (
     <>
       {data?.data.data.length ? (
@@ -31,7 +89,11 @@ const TodoList = () => {
               {Index + 1}-{todo.title}
             </p>
             <div className="flex items-center justify-end w-full space-x-3">
-              <Button variant={"default"} size={"sm"}>
+              <Button
+                variant={"default"}
+                size={"sm"}
+                onClick={() => onOpenEditModal(todo)}
+              >
                 Edit
               </Button>
               <Button variant={"danger"} size={"sm"}>
@@ -43,6 +105,43 @@ const TodoList = () => {
       ) : (
         <h3>No Todos Found yet !</h3>
       )}
+      <Modal
+        isOpen={isOpenEditModal}
+        closeModal={closeEditModal}
+        title="edit todo"
+      >
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-3">
+            <Input
+              value={todoToEdit?.title}
+              name={"title"}
+              onChange={handleChange}
+            />
+            <Textarea
+              value={todoToEdit?.description}
+              name={"description"}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="mt-4 flex space-x-2">
+            <Button
+              isLoading={isUpdating}
+              className="bg-indigo-700 hover:bg-indigo-800 flex-1"
+              size={"sm"}
+            >
+              Update
+            </Button>
+            <Button
+              variant={"danger"}
+              size={"sm"}
+              onClick={closeEditModal}
+              className="flex-1"
+            >
+              cancel
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </>
   );
 };
