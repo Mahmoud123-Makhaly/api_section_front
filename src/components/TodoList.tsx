@@ -7,6 +7,7 @@ import { useState } from "react";
 import Input from "./ui/Input";
 import Textarea from "./ui/Textarea";
 import axiosInstance from "../config/axios.config";
+import TodoSkeleton from "./ui/TodoSkeleton";
 
 const TodoList = () => {
   const [isOpenEditModal, setIsOpenEditModal] = useState(false);
@@ -16,13 +17,18 @@ const TodoList = () => {
     title: "",
     description: "",
   });
+  const [todoToDelete, setTodoToDelete] = useState<ITodo>({
+    id: 0,
+    title: "",
+    description: "",
+  });
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const userData = localStorage.getItem("loggedInUser")
     ? JSON.parse(localStorage.getItem("loggedInUser") as string)
     : null;
-  const { isLoading, data } = useAuthenticatedQuery({
-    queryKey: ["todos", String(todoToEdit.id)],
+  const { isLoading, data, refetch } = useAuthenticatedQuery({
+    queryKey: ["todos"],
     url: "/todos",
     config: {
       headers: {
@@ -30,7 +36,37 @@ const TodoList = () => {
       },
     },
   });
-  // edit modal logic
+
+  // delete   logic*********************************************
+  const openDeleteModal = (todo: ITodo) => {
+    try {
+      setIsOpenDeleteModal((prev) => !prev);
+      setTodoToDelete(todo);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const closeDeleteModal = () => {
+    setIsOpenDeleteModal(false);
+  };
+  const handleDeleteTodo = async () => {
+    setIsDeleting(true);
+    try {
+      await axiosInstance.delete(`/todos/${todoToDelete.documentId}`, {
+        headers: {
+          Authorization: `Bearer ${userData.jwt}`,
+        },
+      });
+      refetch();
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsDeleting(false);
+      closeDeleteModal();
+    }
+  };
+  //**********************************************************************
+  // edit   logic
   const onOpenEditModal = (todo: ITodo) => {
     setIsOpenEditModal((prev) => !prev);
     setTodoToEdit(todo);
@@ -43,14 +79,6 @@ const TodoList = () => {
       description: "",
     });
   };
-  // delete modal logic
-  const openDeleteModal = () => {
-    setIsOpenDeleteModal((prev) => !prev);
-  };
-  const closeDeleteModal = () => {
-    setIsOpenDeleteModal(false);
-  };
-  if (isLoading) return <p>Loading...</p>;
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -80,12 +108,22 @@ const TodoList = () => {
       if (res.status === 200) {
         closeEditModal();
       }
+      refetch();
     } catch (error) {
       console.log(error);
     } finally {
       setIsUpdating(false);
     }
   };
+
+  if (isLoading)
+    return (
+      <div className="space-y-5">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <TodoSkeleton key={index} />
+        ))}
+      </div>
+    );
   return (
     <>
       {data?.data.data.length ? (
@@ -108,7 +146,7 @@ const TodoList = () => {
               <Button
                 variant={"danger"}
                 size={"sm"}
-                onClick={() => openDeleteModal()}
+                onClick={() => openDeleteModal(todo)}
               >
                 Remove
               </Button>
@@ -168,6 +206,7 @@ const TodoList = () => {
             isLoading={isDeleting}
             className="bg-red-700 hover:bg-red-800 flex-1"
             size={"sm"}
+            onClick={handleDeleteTodo}
           >
             Yes Delete
           </Button>
