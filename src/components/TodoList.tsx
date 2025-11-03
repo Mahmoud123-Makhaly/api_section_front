@@ -12,6 +12,7 @@ import TodoSkeleton from "./ui/TodoSkeleton";
 const TodoList = () => {
   const [isOpenEditModal, setIsOpenEditModal] = useState(false);
   const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
+  const [isOpenAddModal, setIsOpenAddModal] = useState(false);
   const [todoToEdit, setTodoToEdit] = useState<ITodo>({
     id: 0,
     title: "",
@@ -22,7 +23,12 @@ const TodoList = () => {
     title: "",
     description: "",
   });
+  const [todoToAdd, setTodoToAdd] = useState({
+    title: "",
+    description: "",
+  });
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const userData = localStorage.getItem("loggedInUser")
     ? JSON.parse(localStorage.getItem("loggedInUser") as string)
@@ -79,14 +85,14 @@ const TodoList = () => {
       description: "",
     });
   };
-  const handleChange = (
+  const handleEditChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setTodoToEdit((prev) => ({ ...prev, [name]: value }));
   };
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmitEditTodo = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsUpdating(true);
     try {
@@ -115,7 +121,46 @@ const TodoList = () => {
       setIsUpdating(false);
     }
   };
-
+  // Add todo logic
+  const openAddModal = () => {
+    setIsOpenAddModal((prev) => !prev);
+  };
+  const closeAddModal = () => {
+    setIsOpenAddModal(false);
+  };
+  const handleSubmitAddTodo = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsCreating(true);
+    try {
+      setIsCreating(true);
+      await axiosInstance.post(
+        `/todos`,
+        {
+          data: {
+            title: todoToAdd.title,
+            description: todoToAdd.description,
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${userData.jwt}`,
+          },
+        }
+      );
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsCreating(false);
+      closeAddModal();
+      refetch();
+    }
+  };
+  const handleAddChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setTodoToAdd((prev) => ({ ...prev, [name]: value }));
+  };
   if (isLoading)
     return (
       <div className="space-y-5">
@@ -126,6 +171,15 @@ const TodoList = () => {
     );
   return (
     <>
+      <div className="my-10">
+        <Button
+          className="  m-auto bg-indigo-700 hover:bg-indigo-800"
+          size={"sm"}
+          onClick={openAddModal}
+        >
+          Post New Todo
+        </Button>
+      </div>
       {data?.data.data.length ? (
         data?.data.data.map((todo: ITodo, Index: number) => (
           <div
@@ -162,17 +216,17 @@ const TodoList = () => {
         closeModal={closeEditModal}
         title="edit todo"
       >
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmitEditTodo}>
           <div className="space-y-3">
             <Input
               value={todoToEdit?.title}
               name={"title"}
-              onChange={handleChange}
+              onChange={handleEditChange}
             />
             <Textarea
               value={todoToEdit?.description}
               name={"description"}
-              onChange={handleChange}
+              onChange={handleEditChange}
             />
           </div>
           <div className="mt-4 flex space-x-2">
@@ -187,6 +241,44 @@ const TodoList = () => {
               variant={"danger"}
               size={"sm"}
               onClick={closeEditModal}
+              className="flex-1"
+            >
+              cancel
+            </Button>
+          </div>
+        </form>
+      </Modal>
+      {/* Add  Modal */}
+      <Modal
+        isOpen={isOpenAddModal}
+        closeModal={closeAddModal}
+        title="Add Todo"
+      >
+        <form onSubmit={handleSubmitAddTodo}>
+          <div className="space-y-3">
+            <Input
+              value={todoToAdd?.title}
+              name={"title"}
+              onChange={handleAddChange}
+            />
+            <Textarea
+              value={todoToAdd?.description}
+              name={"description"}
+              onChange={handleAddChange}
+            />
+          </div>
+          <div className="mt-4 flex space-x-2">
+            <Button
+              isLoading={isCreating}
+              className="bg-indigo-700 hover:bg-indigo-800 flex-1"
+              size={"sm"}
+            >
+              Done
+            </Button>
+            <Button
+              variant={"danger"}
+              size={"sm"}
+              onClick={closeAddModal}
               className="flex-1"
             >
               cancel
