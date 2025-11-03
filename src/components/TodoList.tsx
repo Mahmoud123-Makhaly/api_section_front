@@ -8,6 +8,7 @@ import Input from "./ui/Input";
 import Textarea from "./ui/Textarea";
 import axiosInstance from "../config/axios.config";
 import TodoSkeleton from "./ui/TodoSkeleton";
+import { faker } from "@faker-js/faker";
 
 const TodoList = () => {
   const [isOpenEditModal, setIsOpenEditModal] = useState(false);
@@ -63,12 +64,12 @@ const TodoList = () => {
           Authorization: `Bearer ${userData.jwt}`,
         },
       });
-      refetch();
     } catch (error) {
       console.log(error);
     } finally {
       setIsDeleting(false);
       closeDeleteModal();
+      refetch();
     }
   };
   //**********************************************************************
@@ -96,7 +97,7 @@ const TodoList = () => {
     e.preventDefault();
     setIsUpdating(true);
     try {
-      const res = await axiosInstance.put(
+      await axiosInstance.put(
         `/todos/${todoToEdit.documentId}`,
         {
           data: {
@@ -111,14 +112,12 @@ const TodoList = () => {
           },
         }
       );
-      if (res.status === 200) {
-        closeEditModal();
-      }
-      refetch();
     } catch (error) {
       console.log(error);
     } finally {
       setIsUpdating(false);
+      closeEditModal();
+      refetch();
     }
   };
   // Add todo logic
@@ -153,6 +152,7 @@ const TodoList = () => {
       setIsCreating(false);
       closeAddModal();
       refetch();
+      setTodoToAdd({ title: "", description: "" });
     }
   };
   const handleAddChange = (
@@ -161,25 +161,64 @@ const TodoList = () => {
     const { name, value } = e.target;
     setTodoToAdd((prev) => ({ ...prev, [name]: value }));
   };
-  if (isLoading)
-    return (
-      <div className="space-y-5">
-        {Array.from({ length: 5 }).map((_, index) => (
-          <TodoSkeleton key={index} />
-        ))}
-      </div>
-    );
+  const onGenerate = async () => {
+    for (let i = 0; i < 100; i++) {
+      try {
+        await axiosInstance.post(
+          `/todos`,
+          {
+            data: {
+              title: faker.word.words(5),
+              description: faker.lorem.paragraph(),
+            },
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${userData.jwt}`,
+            },
+          }
+        );
+      } catch (error) {
+        console.log(error);
+      } finally {
+        refetch();
+      }
+    }
+  };
   return (
     <>
-      <div className="my-10">
-        <Button
-          className="  m-auto bg-indigo-700 hover:bg-indigo-800"
-          size={"sm"}
-          onClick={openAddModal}
-        >
-          Post New Todo
-        </Button>
-      </div>
+      {isLoading ? (
+        <>
+          {" "}
+          <div className="flex items-center justify-center space-x-2 mb-5">
+            <div className=" w-36 h-9 bg-gray-300 rounded-md dark:bg-gray-700  "></div>
+            <div className=" w-36 h-9 bg-gray-300 rounded-md dark:bg-gray-700 "></div>
+          </div>
+          <div className="space-y-5">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <TodoSkeleton key={index} />
+            ))}
+          </div>{" "}
+        </>
+      ) : (
+        <div className="my-10 flex  justify-center space-x-3">
+          <Button
+            className="    bg-indigo-700 hover:bg-indigo-800"
+            size={"sm"}
+            onClick={openAddModal}
+          >
+            Post New Todo
+          </Button>
+          <Button
+            onClick={onGenerate}
+            className="   bg-transparent border border-indigo-400 text-black hover:text-white hover:bg-indigo-800"
+            size={"sm"}
+          >
+            Generate Todo
+          </Button>
+        </div>
+      )}
+
       {data?.data.data.length ? (
         data?.data.data.map((todo: ITodo, Index: number) => (
           <div
@@ -242,6 +281,7 @@ const TodoList = () => {
               size={"sm"}
               onClick={closeEditModal}
               className="flex-1"
+              type="button"
             >
               cancel
             </Button>
@@ -277,6 +317,7 @@ const TodoList = () => {
             </Button>
             <Button
               variant={"danger"}
+              type="button"
               size={"sm"}
               onClick={closeAddModal}
               className="flex-1"
