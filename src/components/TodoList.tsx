@@ -36,7 +36,7 @@ const TodoList = () => {
     : null;
   const { isLoading, data, refetch } = useAuthenticatedQuery({
     queryKey: ["todos"],
-    url: "/todos",
+    url: "/users/me?populate=*",
     config: {
       headers: {
         Authorization: `Bearer ${userData.jwt}`,
@@ -180,8 +180,6 @@ const TodoList = () => {
         );
       } catch (error) {
         console.log(error);
-      } finally {
-        refetch();
       }
     }
   };
@@ -219,8 +217,8 @@ const TodoList = () => {
         </div>
       )}
 
-      {data?.data.data.length ? (
-        data?.data.data.map((todo: ITodo, Index: number) => (
+      {data?.data.todos.length ? (
+        data?.data.todos.map((todo: ITodo, Index: number) => (
           <div
             className="flex items-center justify-between hover:bg-gray-100 duration-300 p-3 rounded-md even:bg-gray-100"
             key={todo.id}
