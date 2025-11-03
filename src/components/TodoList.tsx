@@ -7,16 +7,17 @@ import { useState } from "react";
 import Input from "./ui/Input";
 import Textarea from "./ui/Textarea";
 import axiosInstance from "../config/axios.config";
-import { set } from "react-hook-form";
 
 const TodoList = () => {
   const [isOpenEditModal, setIsOpenEditModal] = useState(false);
+  const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
   const [todoToEdit, setTodoToEdit] = useState<ITodo>({
     id: 0,
     title: "",
     description: "",
   });
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const userData = localStorage.getItem("loggedInUser")
     ? JSON.parse(localStorage.getItem("loggedInUser") as string)
     : null;
@@ -29,6 +30,7 @@ const TodoList = () => {
       },
     },
   });
+  // edit modal logic
   const onOpenEditModal = (todo: ITodo) => {
     setIsOpenEditModal((prev) => !prev);
     setTodoToEdit(todo);
@@ -40,6 +42,13 @@ const TodoList = () => {
       title: "",
       description: "",
     });
+  };
+  // delete modal logic
+  const openDeleteModal = () => {
+    setIsOpenDeleteModal((prev) => !prev);
+  };
+  const closeDeleteModal = () => {
+    setIsOpenDeleteModal(false);
   };
   if (isLoading) return <p>Loading...</p>;
   const handleChange = (
@@ -96,7 +105,11 @@ const TodoList = () => {
               >
                 Edit
               </Button>
-              <Button variant={"danger"} size={"sm"}>
+              <Button
+                variant={"danger"}
+                size={"sm"}
+                onClick={() => openDeleteModal()}
+              >
                 Remove
               </Button>
             </div>
@@ -105,6 +118,7 @@ const TodoList = () => {
       ) : (
         <h3>No Todos Found yet !</h3>
       )}
+      {/* Edit Modal */}
       <Modal
         isOpen={isOpenEditModal}
         closeModal={closeEditModal}
@@ -141,6 +155,26 @@ const TodoList = () => {
             </Button>
           </div>
         </form>
+      </Modal>
+      {/* Delete Modal */}
+      <Modal
+        isOpen={isOpenDeleteModal}
+        closeModal={closeDeleteModal}
+        title="Are You Sure To Remove This Todo  From Your Store?"
+        description="Deleting This Todo Will Remove It From Your Store Permanently And You Will Not Be Able To Get It Back."
+      >
+        <div className="mt-4 flex space-x-2">
+          <Button
+            isLoading={isDeleting}
+            className="bg-red-700 hover:bg-red-800 flex-1"
+            size={"sm"}
+          >
+            Yes Delete
+          </Button>
+          <Button size={"sm"} onClick={closeDeleteModal} className="flex-1">
+            cancel
+          </Button>
+        </div>
       </Modal>
     </>
   );
